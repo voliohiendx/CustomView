@@ -53,7 +53,7 @@ dependencies {
     implementation "com.airbnb.android:epoxy:4.6.4"
     kapt "com.airbnb.android:epoxy-processor:4.6.4"
     implementation 'com.airbnb.android:epoxy-databinding:4.6.3'
-    implementation 'com.github.voliohiendx:libIap:0.0.2'
+//    implementation 'com.github.voliohiendx:libIap:0.0.2'
 }
 
 kapt {
