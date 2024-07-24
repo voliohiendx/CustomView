@@ -1,11 +1,14 @@
-package com.example.custtomview
+package com.example.custtomview.exoPlayer
 
 import android.content.Context
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import com.google.android.exoplayer2.*
+import com.google.android.exoplayer2.DefaultRenderersFactory
 import com.google.android.exoplayer2.ExoPlayer
+import com.google.android.exoplayer2.MediaItem
+import com.google.android.exoplayer2.PlaybackException
+import com.google.android.exoplayer2.Player
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory
 import com.google.android.exoplayer2.ui.StyledPlayerView
@@ -27,11 +30,16 @@ interface ExoPlayerController {
 
     fun onPrevious()
 
+    fun setVolume(volume: Float)
+
     fun onSeekChanged(positionMillis: Long)
 
     fun setPlaylist(uris: List<Uri>, initIndexPlay: Int = 0, isPlayWhenReady: Boolean = true)
 
     fun setSingleSong(uri: Uri, isPlayWhenReady: Boolean = true, isRepeat: Boolean = false)
+
+    fun setSingleSongPath(path: String, isPlayWhenReady: Boolean = true, isRepeat: Boolean = false)
+
 
     fun getCurrentPosition(): Long
 
@@ -57,6 +65,7 @@ class ExoPlayer(
     private val isPlayWhenReady: Boolean = false,
     private val timeDelayUpdateMs: Long = 1000,
     private val playerCallback: Player.Listener? = null,
+//    private val playerCallback1: PlayerS = null,
 ) : ExoPlayerController, Player.Listener {
 
     private val listPlayerCallback = mutableListOf<Player.Listener>()
@@ -84,6 +93,10 @@ class ExoPlayer(
             playerCallback?.let { listPlayerCallback.add(it) }
             addListener(this@ExoPlayer)
         }
+    }
+
+    fun addListener(listener: Player.Listener) {
+        player.addListener(listener)
     }
 
     override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -137,6 +150,10 @@ class ExoPlayer(
 
     override fun onPrevious() = player.seekToPrevious()
 
+    override fun setVolume(volume: Float) {
+        player.volume = volume
+    }
+
 
     override fun onSeekChanged(positionMillis: Long) = player.seekTo(positionMillis)
 
@@ -146,7 +163,6 @@ class ExoPlayer(
             setMediaItems(uris.map { MediaItem.fromUri(it) })
             seekTo(initIndexPlay, 0)
             playWhenReady = isPlayWhenReady
-            playWhenReady = isPlayWhenReady
             prepare()
         }
     }
@@ -155,6 +171,24 @@ class ExoPlayer(
     override fun setSingleSong(uri: Uri, isPlayWhenReady: Boolean, isRepeat: Boolean) {
         player.apply {
             setMediaItem(MediaItem.fromUri(uri))
+            playWhenReady = isPlayWhenReady
+            repeatMode = if (isRepeat) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+            prepare()
+        }
+    }
+
+    override fun setSingleSongPath(path: String, isPlayWhenReady: Boolean, isRepeat: Boolean) {
+        player.apply {
+            setMediaItem(MediaItem.fromUri(path))
+            playWhenReady = isPlayWhenReady
+            repeatMode = if (isRepeat) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
+            prepare()
+        }
+
+    }
+
+    fun setRepeatMode(isPlayWhenReady: Boolean, isRepeat: Boolean) {
+        player.apply {
             playWhenReady = isPlayWhenReady
             repeatMode = if (isRepeat) Player.REPEAT_MODE_ONE else Player.REPEAT_MODE_OFF
             prepare()
@@ -193,7 +227,7 @@ class ExoPlayer(
     }
 
 
-    fun isFinished() : Boolean {
+    fun isFinished(): Boolean {
         return player.playbackState == Player.STATE_ENDED
     }
 
